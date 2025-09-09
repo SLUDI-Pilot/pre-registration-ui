@@ -76,7 +76,6 @@ export class AcknowledgementComponent implements OnInit, OnDestroy {
       appConstants.CONFIG_KEYS.preregistration_identity_name
     );
     await this.getUserInfo(this.preRegIds);
-    //console.log(this.usersInfoArr);
     for (let i = 0; i < this.usersInfoArr.length; i++) {
       await this.getRegCenterDetails(this.usersInfoArr[i].langCode, i);
       await this.getLabelDetails(this.usersInfoArr[i].langCode, i);
@@ -105,7 +104,6 @@ export class AcknowledgementComponent implements OnInit, OnDestroy {
       preRegIds.forEach(async (prid: any, index) => {
         await this.getUserDetails(prid).then(async (user) => {
           let regDto;
-          //console.log(user);
           await this.getAppointmentDetails(prid).then((appointmentDetails) => {
             regDto = appointmentDetails;
           });
@@ -127,14 +125,19 @@ export class AcknowledgementComponent implements OnInit, OnDestroy {
             };
             nameListObj.preRegId = user["request"].preRegistrationId;
             nameListObj.status = user["request"].statusCode;
-            if (demographicData[this.name]) {
-              let nameValues = demographicData[this.name];
-              nameValues.forEach(nameVal => {
-                if (nameVal["language"] == applicationLang) {
-                  nameListObj.fullName = nameVal["value"];
-                }
-              });  
+            
+            let fullNameConcat="";
+            for (var names  of  this.name.split(",")) {
+              if (demographicData[names]) {
+                let nameValues = demographicData[names] == null ? [] : demographicData[names];
+                nameValues.forEach(nameVal => {
+                  if (nameVal["language"] == applicationLang) {
+                   fullNameConcat += nameVal["value"] + " ";
+                  }
+                });
+              }
             }
+            nameListObj.fullName = fullNameConcat;
             if (demographicData["postalCode"]) {
               nameListObj.postalCode = demographicData["postalCode"];
             }
@@ -142,7 +145,6 @@ export class AcknowledgementComponent implements OnInit, OnDestroy {
             nameListObj.langCode = applicationLang;
             nameListObj.regDto = regDto;
             this.usersInfoArr.push(nameListObj);
-            //console.log(this.usersInfoArr);
             this.applicantContactDetails.push({
               "preRegId": user["request"].preRegistrationId,
               "phone": demographicData["phone"],
@@ -182,7 +184,6 @@ export class AcknowledgementComponent implements OnInit, OnDestroy {
       this.dataStorageService
         .getAppointmentDetails(preRegId)
         .subscribe((response) => {
-          //console.log(response);
           if (response[appConstants.RESPONSE]) {
             this.regCenterId =
             response[appConstants.RESPONSE].registration_center_id;
@@ -221,7 +222,6 @@ export class AcknowledgementComponent implements OnInit, OnDestroy {
       .getI18NLanguageFiles(langCode)
       .subscribe((response) => {
         this.usersInfoArr[index].labelDetails.push(response["acknowledgement"]);
-        //console.log(this.usersInfoArr[index].labelDetails);
         resolve(true);
       });
     });
@@ -233,7 +233,6 @@ export class AcknowledgementComponent implements OnInit, OnDestroy {
       .getI18NLanguageFiles(langCode)
       .subscribe((response) => {
         this.usersInfoArr[index].userLangLabelDetails.push(response["acknowledgement"]);
-        //console.log(this.usersInfoArr[index].labelDetails);
         resolve(true);
       });
     });
@@ -271,7 +270,6 @@ export class AcknowledgementComponent implements OnInit, OnDestroy {
           labelNames.push(labels.label_name);
           labelRegCntrs.push(labels.label_reg_cntr);
           nameValues.push(userInfo.fullName);
-          //console.log(userInfo.registrationCenter.name);
           if (userInfo.registrationCenter.name) {
             regCntrNames.push(userInfo.registrationCenter.name);
           }
@@ -319,7 +317,6 @@ export class AcknowledgementComponent implements OnInit, OnDestroy {
           }
         }
       });
-      //console.log(appLangCode);
       if (this.ltrLangs.includes(appLangCode[0])) {
         this.ackDataItem["appLangCodeDir"] = "ltr";
       } else {
@@ -394,7 +391,6 @@ export class AcknowledgementComponent implements OnInit, OnDestroy {
   async qrCodeForUser() {
     return new Promise((resolve) => {
       this.usersInfoArr.forEach(async (user) => {
-        //console.log(user);
         await this.generateQRCode(user);
         if (this.usersInfoArr.indexOf(user) === this.usersInfoArr.length - 1) {
           resolve(true);
@@ -443,7 +439,6 @@ export class AcknowledgementComponent implements OnInit, OnDestroy {
         .getGuidelineTemplate("Onscreen-Acknowledgement")
         .subscribe((response) => {
           this.guidelines = response["response"]["templates"];
-          //console.log(this.guidelines);
           resolve(true);
         });
       this.subscriptions.push(subs);
@@ -508,7 +503,6 @@ export class AcknowledgementComponent implements OnInit, OnDestroy {
       })
       .afterClosed()
       .subscribe((applicantNumber) => {
-        //console.log(applicantNumber);
         if (applicantNumber !== undefined) {
           this.preRegIds.forEach(preRegId => {
             this.applicantContactDetails.push({
@@ -531,7 +525,6 @@ export class AcknowledgementComponent implements OnInit, OnDestroy {
           const subs = this.dataStorageService
             .generateQRCode(name.preRegId)
             .subscribe((response) => {
-              console.log(response["response"]);
               this.usersInfoArr[index].qrCodeBlob = response["response"].qrcode;
               resolve(true);
             });

@@ -189,13 +189,17 @@ export class TimeSelectionComponent
       let filteredLangs = applicationLanguages.filter(applicationLang => 
         applicationLang == this.userPreferredLangCode
       );
+      let fullNameConcat = "";
       if (filteredLangs.length > 0) {
-        let nameValues = demographicData[this.name];
-        nameValues.forEach(nameVal => {
-          if (nameVal["language"] == this.userPreferredLangCode) {
-            nameList.fullName = nameVal["value"];
-          }
-        });  
+        for (var names of this.name.split(",")) {
+          let nameValues = demographicData[names] == null ? [] : demographicData[names];
+          nameValues.forEach(nameVal => {
+            if (nameVal["language"] == this.userPreferredLangCode) {
+              fullNameConcat += nameVal["value"] + " ";
+            }
+          });
+        }
+        nameList.fullName = fullNameConcat;
       } else {
         nameList.fullName =
         demographicData[this.name][0].value;
