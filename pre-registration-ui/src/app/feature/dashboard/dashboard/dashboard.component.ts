@@ -340,26 +340,33 @@ export class DashBoardComponent implements OnInit, OnDestroy {
       dataAvailableLanguages = Utils.reorderLangsForUserPreferredLang(dataAvailableLanguages, this.userPreferredLangCode);
     }
     let applicantName = "";
-    const nameField = applicantResponse["demographicMetadata"][this.name];
-    if (Array.isArray(nameField)) {
-      nameField.forEach(fld => {
-        if (fld.language == this.userPreferredLangCode) {
-          applicantName = fld.value;
-        }
-      });
-      if (applicantName == "" && dataAvailableLanguages.length > 0) {
-        nameField.forEach(fld => {
-          if (fld.language == dataAvailableLanguages[0]) {
-            applicantName = fld.value;
+    const [lastKey, midKey, firstKey] = (this.name || "").split(",");
+
+    const keys = [lastKey, midKey, firstKey].filter(k => k);
+    const metadata: any = applicantResponse["demographicMetadata"] || {};
+    const fields: Record<string, any> = {
+      last: keys[0] ? metadata[keys[0]] : null,
+      mid: keys[1] ? metadata[keys[1]] : null,
+      first: keys[2] ? metadata[keys[2]] : null,
+    };
+
+    function getNameByLang(lang: string): string {
+      return ["last", "mid", "first"]
+        .map(key => {
+          const field = fields[key];
+          if (!field) return "";
+          if (Array.isArray(field)) {
+            const match = field.find(fld => fld.language === lang);
+            return match ? match.value : "";
           }
-        });  
-      }
-    } else {
-      if (nameField)
-      applicantName = nameField;
-      else 
-      applicantName = "";
+          return String(field);
+        })
+        .filter(v => v && v.trim())
+        .join(" ");
     }
+
+    applicantName = getNameByLang(this.userPreferredLangCode);
+    
     let dataCaptureLanguagesLabels = Utils.getLanguageLabels(JSON.stringify(dataAvailableLanguages), 
           localStorage.getItem(appConstants.LANGUAGE_CODE_VALUES));
     const applicant: Applicant = {
